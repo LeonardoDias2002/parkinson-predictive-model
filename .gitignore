@@ -1,0 +1,12 @@
+# Caches do Python e Jupyter
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+
+# Ambientes virtuais (se houver)
+.venv/
+venv/
+env/
+
+# Arquivos pesados de dados (mantenha local por segurança)
+*.csv
