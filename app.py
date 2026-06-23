@@ -140,8 +140,8 @@ features_ordenadas = [
 dados_simulacao = dados_simulacao[features_ordenadas]
 
 # Execução do prognóstico
-previsoes_trajetoria = model.predict(dados_simulacao)
-previsao_final = previsoes_trajetoria[-1]
+previsoes_trajetoria = np.asarray(model.predict(dados_simulacao)).flatten()
+previsao_final = float(previsoes_trajetoria[-1])
 
 # ==========================================
 # 6. Interface Principal (Painel de Métricas)
@@ -172,7 +172,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.subheader("📈 Curva de Progressão Motora")
 
 eixo_x = [0] + meses_trajetoria
-eixo_y = [updrs_3] + list(previsoes_trajetoria)
+eixo_y = [updrs_3] + previsoes_trajetoria.tolist()
 
 # Definição das bandas do intervalo de confiança (bloqueando valores negativos e acima do teto da escala)
 y_inferior = [max(0, y - RMSE_MODELO) for y in eixo_y]
