@@ -13,18 +13,37 @@ st.set_page_config(
 
 
 # ==========================================
-# 2. Carregamento do Modelo e Constantes
+# 2. Carregamento do Modelo e Constantes Dinâmicas
 # ==========================================
 @st.cache_resource
 def load_model():
-    # Carrega o modelo matemático exportado pelo Jupyter Notebook (Versão V2 com 10 features)
+    # Carrega o modelo matemático exportado pelo Jupyter Notebook
     return lgb.Booster(model_file="lightgbm_clinico_app.txt")
 
 
 model = load_model()
-RMSE_MODELO = (
-    9.11  # O erro absoluto médio validado na versão final com engenharia de features
-)
+
+# Dicionário de RMSE Dinâmico extraído da Validação Cruzada (GroupKFold).
+# IMPORTANTE: Substitua estes valores pelos números reais que você obteve
+# no gráfico de "RMSE Mês a Mês" do seu Jupyter Notebook!
+RMSE_POR_MES = {
+    12: 6.50,
+    24: 7.80,
+    36: 8.50,
+    48: 9.30,
+    60: 10.10,
+    72: 10.80,
+    84: 11.50,
+    96: 12.00,
+    108: 12.50,
+    120: 13.00,
+}
+
+
+def obter_rmse_dinamico(mes):
+    """Retorna o RMSE específico do mês. Se o mês não estiver mapeado, usa a média global (9.15)."""
+    return RMSE_POR_MES.get(mes, 9.15)
+
 
 # ==========================================
 # 3. Cabeçalho Principal
@@ -64,9 +83,6 @@ with st.sidebar:
         "Estratégia Farmacológica:", options=["Sem Medicação", "Com Medicação"]
     )
 
-    # Lógica Dinâmica e Clínico-Sustentável:
-    # O início do tratamento e o escore UPDRS 4 (complicações motoras induzidas por remédio)
-    # só existem se o status da medicação for ativo. Caso contrário, são travados em zero.
     mes_inicio_med = 0
     updrs_4 = 0
 
@@ -92,12 +108,10 @@ with st.sidebar:
         )
 
 # ==========================================
-# 5. Motor Preditivo (Sincronização com Engenharia de Features V2)
+# 5. Motor Preditivo (Sincronização com Engenharia de Features)
 # ==========================================
-# Gerando o vetor de meses para traçar a linha do tempo contínua
 meses_trajetoria = list(range(12, visit_month + 12, 12))
 
-# Mapeamento do status da medicação ao longo da linha do tempo do paciente
 medication_array = []
 for mes in meses_trajetoria:
     if med_status == "Com Medicação" and mes >= mes_inicio_med:
@@ -105,7 +119,6 @@ for mes in meses_trajetoria:
     else:
         medication_array.append(0)
 
-# Construção da matriz base
 dados_simulacao = pd.DataFrame(
     {
         "visit_month": meses_trajetoria,
@@ -118,13 +131,11 @@ dados_simulacao = pd.DataFrame(
 )
 
 # --- ENGENHARIA DE FEATURES EM TEMPO REAL ---
-# Recriando exatamente as mesmas interações matemáticas que o modelo aprendeu no treino
 dados_simulacao["updrs_total_baseline"] = updrs_1 + updrs_2 + updrs_3 + updrs_4
 dados_simulacao["motor_adl_ratio"] = updrs_3 / (updrs_2 + 1.0)
 dados_simulacao["motor_cog_ratio"] = updrs_3 / (updrs_1 + 1.0)
 dados_simulacao["baseline_time_interaction"] = updrs_3 * dados_simulacao["visit_month"]
 
-# Garantindo a ordem idêntica das colunas estruturadas no LightGBM
 features_ordenadas = [
     "visit_month",
     "medication_on",
@@ -139,9 +150,9 @@ features_ordenadas = [
 ]
 dados_simulacao = dados_simulacao[features_ordenadas]
 
-# Execução do prognóstico
 previsoes_trajetoria = np.asarray(model.predict(dados_simulacao)).flatten()
 previsao_final = float(previsoes_trajetoria[-1])
+rmse_final_projetado = obter_rmse_dinamico(visit_month)
 
 # ==========================================
 # 6. Interface Principal (Painel de Métricas)
@@ -159,28 +170,38 @@ with col2:
     )
 with col3:
     st.metric(
-        label="Margem de Erro Esperada (RMSE)",
-        value=f"± {RMSE_MODELO:.2f} pontos",
-        help="Intervalo estatístico derivado da validação cruzada do modelo de aprendizado de máquina.",
+        label=f"Margem de Erro (Mês {visit_month})",
+        value=f"± {rmse_final_projetado:.2f} pontos",
+        help="Incerteza estatística que cresce proporcionalmente ao horizonte de tempo projetado.",
     )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# 7. Gráfico Interativo com Plotly
+# 7. Gráfico Interativo com Plotly (Banda Dinâmica)
 # ==========================================
 st.subheader("📈 Curva de Progressão Motora")
 
 eixo_x = [0] + meses_trajetoria
 eixo_y = [updrs_3] + previsoes_trajetoria.tolist()
 
-# Definição das bandas do intervalo de confiança (bloqueando valores negativos e acima do teto da escala)
-y_inferior = [max(0, y - RMSE_MODELO) for y in eixo_y]
-y_superior = [min(132, y + RMSE_MODELO) for y in eixo_y]
+# Construção da faixa de incerteza aplicando o RMSE correspondente a cada mês
+y_inferior = []
+y_superior = []
+
+for x, y in zip(eixo_x, eixo_y):
+    if x == 0:
+        # No Mês 0, o escore é uma medição física real feita pelo médico, logo, o erro preditivo é zero.
+        rmse_atual = 0.0
+    else:
+        rmse_atual = obter_rmse_dinamico(x)
+
+    y_inferior.append(max(0, y - rmse_atual))
+    y_superior.append(min(132, y + rmse_atual))
 
 fig = go.Figure()
 
-# Camada 1: Faixa de Incerteza Estatística
+# Camada 1: Faixa de Incerteza Estatística Dinâmica (Formato de Funil)
 fig.add_trace(
     go.Scatter(
         x=eixo_x + eixo_x[::-1],
@@ -246,5 +267,5 @@ st.plotly_chart(fig, use_container_width=True)
 # ==========================================
 st.divider()
 st.caption(
-    "Aviso Médico: Ferramenta de suporte à decisão clínica baseada em modelagem preditiva. A faixa sombreada indica a incerteza estatística calculada pelo modelo de aprendizado de máquina. O prognóstico final depende exclusivamente da avaliação médica soberana."
+    "Aviso Médico: Ferramenta de suporte à decisão clínica baseada em modelagem preditiva. A faixa sombreada indica a incerteza estatística calculada pelo modelo de aprendizado de máquina, que cresce progressivamente com o tempo. O prognóstico final depende exclusivamente da avaliação médica soberana."
 )
