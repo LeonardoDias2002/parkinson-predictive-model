@@ -61,7 +61,7 @@ Com a eficácia da abordagem clínica validada, o modelo final obteve uma grande
 
 1. **Clone o repositório:**
 ```bash
-git clone [https://github.com/SEU-USUARIO/parkinson-predictive-model.git](https://github.com/SEU-USUARIO/parkinson-predictive-model.git)
+git clone https://github.com/LeonardoDias2002/parkinson-predictive-model.git
 cd parkinson-predictive-model
 ```
 
