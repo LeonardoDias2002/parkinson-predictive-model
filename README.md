@@ -21,9 +21,17 @@ O modelo final foi encapsulado em uma aplicação interativa construída com **S
 
 ---
 
+## 🗄️ Fonte dos Dados e Privacidade
+
+Os dados clínicos e moleculares utilizados neste estudo provêm da iniciativa **AMP-PD (Accelerated Medicines Partnership® Parkinson's Disease)**, um esforço colaborativo global para identificar e validar biomarcadores para a doença.
+
+> **⚠️ Nota sobre Reprodutibilidade:** Devido a diretrizes rígidas de privacidade de dados médicos e ao tamanho massivo dos arquivos de espectrometria de massas (proteômica), os arquivos `.csv` originais não estão versionados neste repositório. Pesquisadores interessados em reproduzir este pipeline devem solicitar acesso direto à base de dados através do portal oficial da AMP-PD.
+
+---
+
 ## 🔬 Metodologia e Rigor Científico
 
-A modelagem de dados de saúde longitudinais exige salvaguardas. O pipeline foi estruturado focado em integridade metodológica e prevenção de vieses:
+A modelagem de dados de saúde longitudinais exige salvaguardas extremas. O pipeline foi estruturado focado em integridade metodológica e prevenção de vieses:
 
 * **Prevenção de Data Leakage:** Todas as variáveis preditoras (baseline) foram rigorosamente isoladas no Mês 0. Variáveis dependentes de eventos futuros não programados (como meses de retorno atípicos) foram descartadas para simular o "Dia 1" realista em um consultório.
 * **Correção de Viés Observacional (O Paradoxo da Medicação):** O algoritmo foi treinado para interpretar a intervenção farmacológica (`medication_on`) com cautela, visto que, em dados observacionais reais, a medicação atua como uma forte *proxy* de severidade clínica aguda.
