@@ -21,11 +21,13 @@ O modelo final foi encapsulado em uma aplicação interativa construída com **S
 
 ---
 
-## 🗄️ Fonte dos Dados e Privacidade
+## 🗄️ Fonte dos Dados e Reprodutibilidade
 
-Os dados clínicos e moleculares utilizados neste estudo provêm da iniciativa **AMP-PD (Accelerated Medicines Partnership® Parkinson's Disease)**, um esforço colaborativo global para identificar e validar biomarcadores para a doença.
+Os dados clínicos e moleculares utilizados neste estudo provêm da iniciativa **AMP-PD (Accelerated Medicines Partnership® Parkinson's Disease)**.
 
-> **⚠️ Nota sobre Reprodutibilidade:** Devido a diretrizes rígidas de privacidade de dados médicos e ao tamanho massivo dos arquivos de espectrometria de massas (proteômica), os arquivos `.csv` originais não estão versionados neste repositório. Pesquisadores interessados em reproduzir este pipeline devem solicitar acesso direto à base de dados através do portal oficial da AMP-PD.
+Para facilitar a reprodutibilidade técnica e o acesso aberto à pesquisa, este projeto utiliza o recorte de dados disponibilizado publicamente na competição do Kaggle **"AMP®-Parkinson's Disease Progression Prediction"**.
+
+> **Como obter os dados:** Para reproduzir este pipeline localmente, baixe os arquivos originais da competição diretamente do [Kaggle](https://www.kaggle.com/competitions/amp-parkinsons-disease-progression-prediction/data) e insira-os na pasta `data/` na raiz deste repositório.
 
 ---
 
@@ -63,12 +65,15 @@ git clone [https://github.com/SEU-USUARIO/parkinson-predictive-model.git](https:
 cd parkinson-predictive-model
 ```
 
-2. **Instale as dependências:**
+2. **Faça o download dos dados:**
+Baixe os arquivos `.csv` (como `train_clinical_data.csv`, `train_peptides.csv`, etc.) diretamente da [competição do Kaggle](https://www.kaggle.com/competitions/amp-parkinsons-disease-progression-prediction/data) e coloque-os dentro da pasta `data/`.
+
+3. **Instale as dependências:**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Execute o Simulador (Streamlit):**
+4. **Execute o Simulador (Streamlit):**
 ```bash
 cd app
 streamlit run app.py
