@@ -31,7 +31,7 @@ Para facilitar a reprodutibilidade técnica e o acesso aberto à pesquisa, este 
 
 ---
 
-## 🔬 Metodologia e Rigor Científico
+## 🔬 Metodologia
 
 A modelagem de dados de saúde longitudinais exige salvaguardas extremas. O pipeline foi estruturado focado em integridade metodológica e prevenção de vieses:
 
